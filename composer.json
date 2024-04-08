@@ -1,0 +1,33 @@
+{
+    "name": "acdh-oeaw/arche-iiif-manifest",
+    "type": "library",
+    "description": "An ARCHE dissemination service generating IIIF manifests",
+    "keywords": [],
+    "homepage": "https://github.com/acdh-oeaw/arche-iiif-manifest",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mateusz Żółtak",
+            "email": "mzoltak@oeaw.ac.at"
+        }
+    ],
+    "require": {
+        "php": ">=8.0 <8.3",
+        "psr/log": "*",
+        "acdh-oeaw/arche-core": "^5"
+    },
+    "autoload": {
+        "psr-4": {
+            "acdhOeaw\\": "src/acdhOeaw"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "phpstan/phpstan": "*"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "acdhOeaw\\arche\\lib\\tests\\": "tests"
+        }
+    }
+}

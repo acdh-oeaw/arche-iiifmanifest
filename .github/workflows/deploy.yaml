@@ -1,0 +1,40 @@
+name: deploy on rancher
+on:
+  workflow_dispatch: ~
+  release:
+    types: [published]
+env:
+  RANCHER_API_BASE: https://rancher.acdh-dev.oeaw.ac.at/v3
+  RANCHER_PROJECT: Dissemination services
+  RANCHER_NAMESPACE: arche-iiifmanifest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      #- name: test
+      #  run: |
+      #    composer update
+      #    vendor/bin/phpunit tests
+      - name: build docker image
+        run: |
+          git reset --hard HEAD
+          rm -fR vendor
+          docker build --rm -t "acdhch/$RANCHER_NAMESPACE:latest" --build-arg VARIANT=production --label "buildUrl=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" .
+      #- name: test image
+      #  run: |
+      #    docker run -d --name "$RANCHER_NAMESPACE" -p 8080:80 "acdhch/$RANCHER_NAMESPACE:latest"
+      #    sleep 1
+      #    some test command
+      - name: authorize against docker hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: push to docker hub
+        run: docker push "acdhch/$RANCHER_NAMESPACE:latest"
+      - name: redeploy on rancher
+        run: |
+          BASE_URL=`curl -s -H "Authorization: Bearer ${{ secrets.RANCHERTOKEN }}" "$RANCHER_API_BASE/projects" | jq -r ".data[] | select(.name == \"$RANCHER_PROJECT\") | .links.workloads"`
+          curl -i -X POST -H "Authorization: Bearer ${{ secrets.RANCHERTOKEN }}" "$BASE_URL/deployment:$RANCHER_NAMESPACE:$RANCHER_NAMESPACE?action=redeploy"
+
