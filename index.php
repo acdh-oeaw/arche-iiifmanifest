@@ -114,11 +114,14 @@ if ($first === null) {
 }
 $sbj = $first;
 if ($mode === 'images') {
-    $data = [];
+    $data = ['index' => null, 'images' => []];
     while ($sbj) {
         $tmp = $graph->copy(new QT($sbj));
         if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
-            $data[] = $getImgInfoUrl((string) $sbj);
+            if ($id === (string) $sbj) {
+                $data['index'] = count($data);
+            } 
+            $data['images'][] = $getImgInfoUrl((string) $sbj);
         }
         $sbj = $tmp->getObject($nextTmpl);
     }
