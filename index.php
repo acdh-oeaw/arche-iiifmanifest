@@ -39,6 +39,7 @@ $allowedNmsp = getenv('ALLOWED_NMSP') ?: '';
 $allowedNmsp = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
 $lorisBaseUrl = getenv('LORIS_BASE') ?: '';
 $defaultMode = getenv('DEFAULT_MODE') ?: 'image';
+$baseUrl = getenv('BASE_URL') ?: 'https://arche-iiifmanifest.acdh-ch-dev.oeaw.ac.at/';
 
 $id           = $_GET['id'] ?? $argv[1] ?? '';
 $mode         = $_GET['mode'] ?? $argv[2] ?? $defaultMode;
@@ -131,17 +132,20 @@ if ($mode === 'images') {
 
     $canvases = [];
     while ($sbj) {
-        $tmp = $graph->copy(new QT($sbj));
-        if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
+        $tmp  = $graph->copy(new QT($sbj));
+        $mime = (string) $tmp->getObjectValue($mimeTmpl);
+        if (str_starts_with($mime, 'image/')) {
             $infoUrl    = $getImgInfoUrl((string) $sbj);
             $meta       = json_decode(file_get_contents($infoUrl));
             $canvases[] = [
                 '@id'    => $sbj . '#IIIF-canvas',
-                'label'  => array_map($formatTitles, iterator_to_array($tmp->listObjects($labelTmpl))),
+                '@type'  => 'sc:Canvas',
+		'label'  => array_map($formatTitles, iterator_to_array($tmp->listObjects($labelTmpl))),
                 'height' => $meta->height,
                 'width'  => $meta->width,
                 'images' => [
                     [
+                        '@id'        => $sbj . '#IIIF-annotation',
                         '@type'      => 'oa:Annotation',
                         'motivation' => 'sc:painting',
                         'on'         => $sbj . '#IIIF-canvas',
@@ -149,10 +153,13 @@ if ($mode === 'images') {
                             '@id'     => $infoUrl,
                             '@type'   => 'dctypes:Image',
                             'service' => [
-                                'profile' => $meta->profile[0],
+                                '@context' => 'http://iiif.io/api/image/2/context.json',
+                                '@id'      => preg_replace('`/[^/]*$`', '', $infoUrl),
+                                'profile'  => $meta->profile[0],
                             ],
                             'height' => $meta->height,
-                            'width'  => $meta->width,
+			    'width'  => $meta->width,
+			    'format' => $mime,
                         ],
                     ],
                 ],
@@ -162,12 +169,13 @@ if ($mode === 'images') {
     }
 
     $data = [
-        '@context'  => 'http://iiif.io/api/presentation/2/context.json',
-        '@id'       => $first . '#IIIF-manifest', # maybe its PID?
-        '@type'     => 'sc:Manifest',
-        'label'     => array_map($formatTitles, $titles),
-        'metadata'  => [],
-        'sequences' => [
+        '@context'    => 'http://iiif.io/api/presentation/2/context.json',
+        '@id'         => $baseUrl . '?' . http_build_query($_GET),
+        '@type'       => 'sc:Manifest',
+	'label'       => array_map($formatTitles, $titles),
+	'description' => ' ',
+        'metadata'    => [],
+        'sequences'   => [
             [
                 '@id'      => $first . '#IIIF-Sequence',
                 '@type'    => 'sc:Sequence',
@@ -177,5 +185,12 @@ if ($mode === 'images') {
     ];
 }
 
+$data = json_encode($data, JSON_UNESCAPED_SLASHES);
+if (str_contains($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip')) {
+    $data = gzencode($data);
+    header('Content-Encoding: gzip');
+}
+header('Vary: Accept-Encoding');
 header('Content-Type: application/json');
-echo json_encode($data, JSON_UNESCAPED_SLASHES);
+echo $data;
+
