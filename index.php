@@ -39,7 +39,7 @@ $allowedNmsp = getenv('ALLOWED_NMSP') ?: '';
 $allowedNmsp = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
 $lorisBaseUrl = getenv('LORIS_BASE') ?: '';
 $defaultMode = getenv('DEFAULT_MODE') ?: 'image';
-$baseUrl = getenv('BASE_URL') ?: 'https://arche-iiifmanifest.acdh-ch-dev.oeaw.ac.at/';
+$baseUrl = getenv('BASE_URL') ?: '';
 
 $id           = $_GET['id'] ?? $argv[1] ?? '';
 $mode         = $_GET['mode'] ?? $argv[2] ?? $defaultMode;
