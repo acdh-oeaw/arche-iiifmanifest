@@ -33,13 +33,14 @@ use termTemplates\QuadTemplate as QT;
 
 include __DIR__ . '/vendor/autoload.php';
 
-$cfgPath = getenv('CFG_PATH') ?: '';
-$dbRole = getenv('DB_ROLE') ?: 'guest';
-$allowedNmsp = getenv('ALLOWED_NMSP') ?: '';
-$allowedNmsp = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
+$cfgPath      = getenv('CFG_PATH') ?: '';
+$dbRole       = getenv('DB_ROLE') ?: 'guest';
+$allowedNmsp  = getenv('ALLOWED_NMSP') ?: '';
+$allowedNmsp  = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
 $lorisBaseUrl = getenv('LORIS_BASE') ?: '';
-$defaultMode = getenv('DEFAULT_MODE') ?: 'image';
-$baseUrl = getenv('BASE_URL') ?: '';
+$defaultMode  = getenv('DEFAULT_MODE') ?: 'image';
+$baseUrl      = getenv('BASE_URL') ?: '';
+$profile      = getenv('PROFILE') ?? null;
 
 $id           = $_GET['id'] ?? $argv[1] ?? '';
 $mode         = $_GET['mode'] ?? $argv[2] ?? $defaultMode;
@@ -61,12 +62,14 @@ if (!empty($cfgPath)) {
     }
     $repo = acdhOeaw\arche\lib\Repo::factoryFromUrl($id);
 }
-$schema    = $repo->getSchema();
-$mimeTmpl  = new PT($schema->mime);
-$labelTmpl = new PT($schema->label);
-$idTmpl    = new PT($schema->id);
-$nextTmpl  = new PT($schema->nextItem);
-$idNmsp    = (string) $schema->namespaces->id;
+$schema     = $repo->getSchema();
+$mimeTmpl   = new PT($schema->mime);
+$labelTmpl  = new PT($schema->label);
+$idTmpl     = new PT($schema->id);
+$nextTmpl   = new PT($schema->nextItem);
+$widthTmpl  = new PT($schema->imagePxWidth);
+$heightTmpl = new PT($schema->imagePxHeight);
+$idNmsp     = (string) $schema->namespaces->id;
 
 $cfg  = new acdhOeaw\arche\lib\SearchConfig();
 $cfg->metadataMode = $mode === 'image' ? '0_0_0_0' : '99999_99999_0_0';
@@ -75,6 +78,8 @@ $cfg->resourceProperties = [
     (string) $schema->nextItem,
     (string) $schema->id,
     (string) $schema->mime,
+    (string) $schema->imagePxWidth,
+    (string) $schema->imagePxHeight,
 ];
 if ($mode === 'manifest') {
     $cfg->resourceProperties[] = (string) $schema->label;
@@ -128,7 +133,7 @@ if ($mode === 'images') {
     }
 } else {
     $formatTitles = fn($x) => ['@value' => $x->getValue(), '@language' => $x->getLang()];
-    $titles = iterator_to_array($graph->listObjects($labelTmpl->withSubject($first)));
+    $titles       = iterator_to_array($graph->listObjects($labelTmpl->withSubject($first)));
 
     $canvases = [];
     while ($sbj) {
@@ -136,13 +141,20 @@ if ($mode === 'images') {
         $mime = (string) $tmp->getObjectValue($mimeTmpl);
         if (str_starts_with($mime, 'image/')) {
             $infoUrl    = $getImgInfoUrl((string) $sbj);
-            $meta       = json_decode(file_get_contents($infoUrl));
+            $width  = $tmp->getObjectValue($widthTmpl);
+            $height = $tmp->getObjectValue($heightTmpl);
+            if (empty($width) || empty($height) || empty($profile)) {
+                $meta    = json_decode(file_get_contents($infoUrl));
+                $width   = $meta->width;
+                $height  = $meta->height;
+                $profile = reset($meta->profile);
+            }
             $canvases[] = [
                 '@id'    => $sbj . '#IIIF-canvas',
                 '@type'  => 'sc:Canvas',
-		'label'  => array_map($formatTitles, iterator_to_array($tmp->listObjects($labelTmpl))),
-                'height' => $meta->height,
-                'width'  => $meta->width,
+                'label'  => array_map($formatTitles, iterator_to_array($tmp->listObjects($labelTmpl))),
+                'height' => $height,
+                'width'  => $width,
                 'images' => [
                     [
                         '@id'        => $sbj . '#IIIF-annotation',
@@ -155,11 +167,11 @@ if ($mode === 'images') {
                             'service' => [
                                 '@context' => 'http://iiif.io/api/image/2/context.json',
                                 '@id'      => preg_replace('`/[^/]*$`', '', $infoUrl),
-                                'profile'  => $meta->profile[0],
+                                'profile'  => $profile,
                             ],
-                            'height' => $meta->height,
-			    'width'  => $meta->width,
-			    'format' => $mime,
+                            'height' => $height,
+                            'width'  => $width,
+                            'format' => $mime,
                         ],
                     ],
                 ],
@@ -172,8 +184,8 @@ if ($mode === 'images') {
         '@context'    => 'http://iiif.io/api/presentation/2/context.json',
         '@id'         => $baseUrl . '?' . http_build_query($_GET),
         '@type'       => 'sc:Manifest',
-	'label'       => array_map($formatTitles, $titles),
-	'description' => ' ',
+        'label'       => array_map($formatTitles, $titles),
+        'description' => ' ',
         'metadata'    => [],
         'sequences'   => [
             [
