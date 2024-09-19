@@ -106,23 +106,23 @@ if ($mode === 'image') {
     exit();
 }
 // Find the first resource
-$first         = null;
-$repoBaseUrl   = $repo->getBaseUrl();
-$resolvedRes   = $graph->getSubject(new PT($schema->id, $id));
-$firstRes      = $resolvedRes;
-$collectionRes = $resolvedRes;
-$tmpl          = new QT($resolvedRes, DF::namedNode(RDF::RDF_TYPE));
+$first          = null;
+$repoBaseUrl    = $repo->getBaseUrl();
+$resolvedRes    = $graph->getSubject(new PT($schema->id, $id));
+$firstRes       = $resolvedRes;
+$collectionRes  = $resolvedRes;
+$collectionTmpl = new PT($schema->parent, $collectionRes);
+$tmpl           = new QT($resolvedRes, DF::namedNode(RDF::RDF_TYPE));
 if ($graph->none($tmpl->withObject($schema->classes->collection)) && $graph->none($tmpl->withObject($schema->classes->topCollection))) {
     // iterate back over hasNextItem from the resolved resource
     // until the previous resource has the same parent as the resolved one
-    $collectionRes  = $graph->getObject(new QT($resolvedRes, $schema->parent));
-    $tmplCollection = new PT($schema->parent, $collectionRes);
-    $tmplNext       = new PT($schema->nextItem);
-    $change         = true;
+    $collectionRes = $graph->getObject(new QT($resolvedRes, $schema->parent));
+    $collectionTmpl = new PT($schema->parent, $collectionRes);
+    $change        = true;
     while ($change) {
         $change = false;
-        foreach ($graph->listSubjects($tmplNext->withObject($firstRes)) as $sbj) {
-            if ($graph->any($tmplCollection->withSubject($sbj))) {
+        foreach ($graph->listSubjects($nextTmpl->withObject($firstRes)) as $sbj) {
+            if ($graph->any($collectionTmpl->withSubject($sbj))) {
                 $firstRes = $sbj;
                 $change = true;
             }
@@ -141,7 +141,12 @@ if ($mode === 'images') {
             } 
             $data['images'][] = $getImgInfoUrl((string) $sbj);
         }
-        $sbj = $tmp->getObject($nextTmpl);
+        $sbj = null;
+        foreach ($tmp->listObjects($nextTmpl) as $i) {
+            if ($graph->any($collectionTmpl->withSubject($i))) {
+                $sbj = $i;
+            }
+        }
     }
 } else {
     $formatTitles = fn($x) => ['@value' => $x->getValue(), '@language' => $x->getLang()];
@@ -190,8 +195,13 @@ if ($mode === 'images') {
                     ],
                 ],
             ];
+	    }
+        $sbj = null;
+        foreach ($tmp->listObjects($nextTmpl) as $i) {
+            if ($graph->any($collectionTmpl->withSubject($i))) {
+                $sbj = $i;
+            }
         }
-        $sbj = $tmp->getObject($nextTmpl);
     }
 
     $data = [
