@@ -28,8 +28,10 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: X-Requested-With, Content-Type');
 
 use acdhOeaw\arche\lib\SearchTerm;
+use quickRdf\DataFactory as DF;
 use termTemplates\PredicateTemplate as PT;
 use termTemplates\QuadTemplate as QT;
+use zozlak\RdfConstants as RDF;
 
 include __DIR__ . '/vendor/autoload.php';
 
@@ -41,6 +43,7 @@ $lorisBaseUrl = getenv('LORIS_BASE') ?: '';
 $defaultMode  = getenv('DEFAULT_MODE') ?: 'image';
 $baseUrl      = getenv('BASE_URL') ?: '';
 $profile      = getenv('PROFILE') ?? null;
+$getDimenions = getenv('GET_DIMENSIONS') ?? false;
 
 $id           = $_GET['id'] ?? $argv[1] ?? '';
 $mode         = $_GET['mode'] ?? $argv[2] ?? $defaultMode;
@@ -76,10 +79,12 @@ $cfg->metadataMode = $mode === 'image' ? '0_0_0_0' : '99999_99999_0_0';
 $cfg->metadataParentProperty = $schema->nextItem;
 $cfg->resourceProperties = [
     (string) $schema->nextItem,
+    (string) $schema->parent,
     (string) $schema->id,
     (string) $schema->mime,
     (string) $schema->imagePxWidth,
     (string) $schema->imagePxHeight,
+    RDF::RDF_TYPE,
 ];
 if ($mode === 'manifest') {
     $cfg->resourceProperties[] = (string) $schema->label;
@@ -88,13 +93,7 @@ $cfg->relativesProperties = $cfg->resourceProperties;
 $term = new SearchTerm(value: substr($id, strlen($repo->getBaseUrl())), type: SearchTerm::TYPE_ID);
 $graph = $repo->getGraphBySearchTerms([$term], $cfg);
 
-$sbjMap = [];
-foreach ($graph->getIterator(new PT($schema->id)) as $triple) {
-    if (str_starts_with((string) $triple->getObject(), $idNmsp)) {
-        $sbjMap[(string) $triple->getSubject()] = (string) $triple->getObject();
-    }
-}
-$getImgInfoUrl = fn($id) => $lorisBaseUrl . preg_replace('`https?://[^/]+/`', '', $sbjMap[$id]) . "/info.json";
+$getImgInfoUrl = fn($id) => $lorisBaseUrl . preg_replace('`^.*/`', '', $id) . "/info.json";
 
 $data = null;
 if ($mode === 'image') {
@@ -106,25 +105,38 @@ if ($mode === 'image') {
     echo "Unknown mode $mode\n";
     exit();
 }
-$first = null;
-$repoBaseUrl = $repo->getBaseUrl();
-foreach ($graph->listSubjects() as $sbj) {
-    if ($repoBaseUrl !== (string) $sbj && $graph->none($nextTmpl->withObject($sbj))) {
-        $first = $sbj;
-        break;
+// Find the first resource
+$first         = null;
+$repoBaseUrl   = $repo->getBaseUrl();
+$resolvedRes   = $graph->getSubject(new PT($schema->id, $id));
+$firstRes      = $resolvedRes;
+$collectionRes = $resolvedRes;
+$tmpl          = new QT($resolvedRes, DF::namedNode(RDF::RDF_TYPE));
+if ($graph->none($tmpl->withObject($schema->classes->collection)) && $graph->none($tmpl->withObject($schema->classes->topCollection))) {
+    // iterate back over hasNextItem from the resolved resource
+    // until the previous resource has the same parent as the resolved one
+    $collectionRes  = $graph->getObject(new QT($resolvedRes, $schema->parent));
+    $tmplCollection = new PT($schema->parent, $collectionRes);
+    $tmplNext       = new PT($schema->nextItem);
+    $change         = true;
+    while ($change) {
+        $change = false;
+        foreach ($graph->listSubjects($tmplNext->withObject($firstRes)) as $sbj) {
+            if ($graph->any($tmplCollection->withSubject($sbj))) {
+                $firstRes = $sbj;
+                $change = true;
+            }
+        }
     }
 }
-if ($first === null) {
-    http_response_code(500);
-    exit("Couldn't find first resource in the sequence");
-}
-$sbj = $first;
+#echo "id: $id\nresolved: $resolvedRes\ncollection: $collectionRes\nfirst: $firstRes\n";
+$sbj = $firstRes;
 if ($mode === 'images') {
     $data = ['index' => null, 'images' => []];
     while ($sbj) {
         $tmp = $graph->copy(new QT($sbj));
         if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
-            if ($id === (string) $sbj) {
+            if ($resolvedRes->equals($sbj)) {
                 $data['index'] = count($data);
             } 
             $data['images'][] = $getImgInfoUrl((string) $sbj);
@@ -133,7 +145,7 @@ if ($mode === 'images') {
     }
 } else {
     $formatTitles = fn($x) => ['@value' => $x->getValue(), '@language' => $x->getLang()];
-    $titles       = iterator_to_array($graph->listObjects($labelTmpl->withSubject($first)));
+    $titles       = iterator_to_array($graph->listObjects($labelTmpl->withSubject($firstRes)));
 
     $canvases = [];
     while ($sbj) {
@@ -143,11 +155,13 @@ if ($mode === 'images') {
             $infoUrl    = $getImgInfoUrl((string) $sbj);
             $width  = $tmp->getObjectValue($widthTmpl);
             $height = $tmp->getObjectValue($heightTmpl);
-            if (empty($width) || empty($height) || empty($profile)) {
-                $meta    = json_decode(file_get_contents($infoUrl));
-                $width   = $meta->width;
-                $height  = $meta->height;
-                $profile = reset($meta->profile);
+            if ($getDimensions && (empty($width) || empty($height) || empty($profile))) {
+                $meta    = json_decode((string) @file_get_contents($infoUrl));
+                if (is_object($meta)) {
+                    $width   = $meta->width;
+                    $height  = $meta->height;
+                    $profile = reset($meta->profile);
+                }
             }
             $canvases[] = [
                 '@id'    => $sbj . '#IIIF-canvas',
@@ -189,7 +203,7 @@ if ($mode === 'images') {
         'metadata'    => [],
         'sequences'   => [
             [
-                '@id'      => $first . '#IIIF-Sequence',
+                '@id'      => $collectionRes . '#IIIF-Sequence',
                 '@type'    => 'sc:Sequence',
                 'canvases' => $canvases,
             ],
