@@ -28,7 +28,7 @@ Depending on the `mode` parameter the response contains:
 * Run a docker container mounting the arche-core data dir under `/data` and specyfying the configuration using env vars, e.g.:
   ```bash
   docker run --name arche-exif -p 80:80 \
-      -e LORIS_BASEL=https://loris.acdh.oeaw.ac.at/uuid:/ \
+      -e LORIS_BASEL=https://loris.acdh.oeaw.ac.at/ \
       -e 'ALLOWEDNMSP=https://arche-curation.acdh.oeaw.ac.at/api/,https://arche-dev.acdh-dev.oeaw.ac.at/api/' \
       -v pathToArcheDataDir:/data \
       arche-exif
@@ -37,6 +37,7 @@ Depending on the `mode` parameter the response contains:
   * `LORIS_BASE`: base URL of the Loris image server
   * `ALLOWED_NMSP`: comma-separated list of namespaces (URI prefixes) allowed to be downloaded
   * `DEFAULT_MODE`: default mode to be used when not specified in the request (`image`, `images` or `manifest`, by default 'image')
+  * `GET_DIMENSIONS`: when set to `true`, the service tries to fetch image dimensions from the IIIF service if dimensions are missing in the metadata
 * Test
   ```bash
   curl -i http://127.0.0.1/?id=someResourceId&mode=images
