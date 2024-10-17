@@ -137,7 +137,7 @@ if ($mode === 'images') {
         $tmp = $graph->copy(new QT($sbj));
         if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
             if ($resolvedRes->equals($sbj)) {
-                $data['index'] = count($data);
+                $data['index'] = count($data['images']);
             } 
             $data['images'][] = $getImgInfoUrl((string) $sbj);
         }
