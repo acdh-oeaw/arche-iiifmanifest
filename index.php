@@ -33,17 +33,19 @@ use termTemplates\PredicateTemplate as PT;
 use termTemplates\QuadTemplate as QT;
 use zozlak\RdfConstants as RDF;
 
+ini_set('display_errors', true);
+
 include __DIR__ . '/vendor/autoload.php';
 
-$cfgPath      = getenv('CFG_PATH') ?: '';
-$dbRole       = getenv('DB_ROLE') ?: 'guest';
-$allowedNmsp  = getenv('ALLOWED_NMSP') ?: '';
-$allowedNmsp  = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
-$lorisBaseUrl = getenv('LORIS_BASE') ?: '';
-$defaultMode  = getenv('DEFAULT_MODE') ?: 'image';
-$baseUrl      = getenv('BASE_URL') ?: '';
-$profile      = getenv('PROFILE') ?? null;
-$getDimenions = getenv('GET_DIMENSIONS') ?? false;
+$cfgPath       = getenv('CFG_PATH') ?: '';
+$dbRole        = getenv('DB_ROLE') ?: 'guest';
+$allowedNmsp   = getenv('ALLOWED_NMSP') ?: '';
+$allowedNmsp   = empty($allowedNmsp) ? [] : explode(',', $allowedNmsp);
+$lorisBaseUrl  = getenv('LORIS_BASE') ?: '';
+$defaultMode   = getenv('DEFAULT_MODE') ?: 'image';
+$baseUrl       = getenv('BASE_URL') ?: '';
+$profile       = getenv('PROFILE') ?? null;
+$getDimensions = getenv('GET_DIMENSIONS') ?? false;
 
 $id           = $_GET['id'] ?? $argv[1] ?? '';
 $mode         = $_GET['mode'] ?? $argv[2] ?? $defaultMode;
@@ -90,7 +92,11 @@ if ($mode === 'manifest') {
     $cfg->resourceProperties[] = (string) $schema->label;
 }
 $cfg->relativesProperties = $cfg->resourceProperties;
-$term = new SearchTerm(value: substr($id, strlen($repo->getBaseUrl())), type: SearchTerm::TYPE_ID);
+if (str_starts_with($id, $repo->getBaseUrl())) {
+    $term = new SearchTerm(value: substr($id, strlen($repo->getBaseUrl())), type: SearchTerm::TYPE_ID);
+} else{
+    $term = new SearchTerm(value: $id, property: $schema->id);
+}
 $graph = $repo->getGraphBySearchTerms([$term], $cfg);
 
 $getImgInfoUrl = fn($id) => $lorisBaseUrl . preg_replace('`^.*/`', '', $id) . "/info.json";
@@ -137,7 +143,7 @@ if ($mode === 'images') {
         $tmp = $graph->copy(new QT($sbj));
         if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
             if ($resolvedRes->equals($sbj)) {
-                $data['index'] = count($data['images']);
+                $data['index'] = count($data);
             } 
             $data['images'][] = $getImgInfoUrl((string) $sbj);
         }
