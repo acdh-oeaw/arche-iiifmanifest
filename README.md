@@ -1,5 +1,8 @@
 # ARCHE-IIIF-manifest
 
+[![Build status](https://github.com/acdh-oeaw/arche-iiifmanifest/actions/workflows/deploy.yaml/badge.svg)](https://github.com/acdh-oeaw/arche-iiifmanifest/actions/workflows/deploy.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/acdh-oeaw/arche-iiifmanifest/badge.svg?branch=master)](https://coveralls.io/github/acdh-oeaw/arche-iiifmanifest?branch=master)
+
 A dissemination service for the [ARCHE Suite](https://acdh-oeaw.github.io/arche-docs/) providing IIIF manifests for repository resources.
 
 * Allows to limit supported resource URL namespaces
