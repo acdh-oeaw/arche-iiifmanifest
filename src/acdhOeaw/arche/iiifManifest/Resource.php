@@ -28,6 +28,7 @@ namespace acdhOeaw\arche\iiifManifest;
 
 use Psr\Log\LoggerInterface;
 use zozlak\RdfConstants as RDF;
+use rdfInterface\DatasetInterface;
 use rdfInterface\DatasetNodeInterface;
 use rdfInterface\TermInterface;
 use rdfInterface\LiteralInterface;
@@ -128,7 +129,7 @@ class Resource {
             while ($change) {
                 $change = false;
                 foreach ($graph->listSubjects($nextTmpl->withObject($firstRes)) as $sbj) {
-                    if ($graph->any($collectionTmpl->withSubject($sbj))) {
+                    if (!$sbj->equals($firstRes) && $graph->any($collectionTmpl->withSubject($sbj))) {
                         $firstRes = $sbj;
                         $change   = true;
                     }
@@ -136,6 +137,12 @@ class Resource {
             }
         }
         $this->log?->info("resolved: $resolvedRes collection: $collectionRes first: $firstRes");
+
+        // for better caching
+        //$node = $this->meta->getNode();
+        //$graph->add(DF::quad($node, $this->schema->id, $firstRes));
+        //$graph->add(DF::quad($node, $this->schema->id, $collectionRes));
+
         return [$firstRes, $collectionRes];
     }
 
@@ -157,12 +164,7 @@ class Resource {
                 }
                 $data['images'][] = $this->getImageInfoUrl((string) $sbj);
             }
-            $sbj = null;
-            foreach ($tmp->listObjects($nextTmpl) as $i) {
-                if ($graph->any($collectionTmpl->withSubject($i))) {
-                    $sbj = $i;
-                }
-            }
+            $sbj = $this->getNextSbj($tmp, $collectionTmpl);
         }
         return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
@@ -170,7 +172,6 @@ class Resource {
     private function getManifest(TermInterface $firstRes,
                                  TermInterface $collectionRes): string {
         $labelTmpl      = new PT($this->schema->label);
-        $nextTmpl       = new PT($this->schema->nextItem);
         $mimeTmpl       = new PT($this->schema->mime);
         $widthTmpl      = new PT($this->schema->imagePxWidth);
         $heightTmpl     = new PT($this->schema->imagePxHeight);
@@ -228,12 +229,7 @@ class Resource {
                     ],
                 ];
             }
-            $sbj = null;
-            foreach ($tmp->listObjects($nextTmpl) as $i) {
-                if ($graph->any($collectionTmpl->withSubject($i))) {
-                    $sbj = $i;
-                }
-            }
+            $sbj = $this->getNextSbj($tmp, $collectionTmpl);
 
             $data = [
                 '@context'    => 'http://iiif.io/api/presentation/2/context.json',
@@ -253,5 +249,21 @@ class Resource {
         }
 
         return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    private function getNextSbj(DatasetInterface $data, PT $collectionTmpl): TermInterface | null {
+        $nextTmpl = new PT($this->schema->nextItem);
+        $node     = $this->meta->getNode();
+        $graph    = $this->meta->getDataset();
+
+        $sbj = null;
+        foreach ($data->listObjects($nextTmpl) as $i) {
+            if ($graph->any($collectionTmpl->withSubject($i))) {
+                $sbj = $i;
+                // for better caching
+                //$graph->add(DF::quad($node, $this->schema->id, $i));
+            }
+        }
+        return $sbj;
     }
 }

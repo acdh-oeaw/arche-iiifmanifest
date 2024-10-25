@@ -33,13 +33,13 @@ header('Access-Control-Allow-Headers: X-Requested-With, Content-Type');
 
 require_once 'vendor/autoload.php';
 
-$service = new Service(__DIR__ . '/config.yaml');
+$mode       = $_GET['mode'] ?? $config->iiifManifest->defaultMode;
+$cfgVariang = $mode === Resource::MODE_IMAGE ? Resource::MODE_IMAGE : Resource::MODE_MANIFEST;
+
+$service = new Service(__DIR__ . "/config_$cfgVariang.yaml");
 $config  = $service->getConfig();
 $clbck   = fn($res, $param) => Resource::cacheHandler($res, $param, $config->iiifManifest, $service->getLog());
 $service->setCallback($clbck);
-
-$mode                                   = $_GET['mode'] ?? $config->iiifManifest->defaultMode;
-$config->dissCacheService->metadataMode = $mode === Resource::MODE_IMAGE ? '0_0_0_0' : '99999_99999_0_0';
 
 $response = $service->serveRequest($_GET['id'] ?? '', [$mode]);
 $response->send(true);

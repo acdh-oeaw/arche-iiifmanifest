@@ -1,40 +1,25 @@
 dissCacheService:
-  db: "sqlite::memory:"
+  db: sqlite:/var/www/html/db_image.sqlite
+  dbId: image
   log:
-    file: /tmp/__log__
+    file: /var/www/html/log_image
     level: debug
   ttl:
     resource: 3600     # 1 hour
     response: 31536000 # 1 year
-  repoDb: []
+  repoDb:
+  - archeProd.yaml
+  - archeCur.yaml
   allowedNmsp:
   - https://id.acdh.oeaw.ac.at/
   - https://arche.acdh.oeaw.ac.at/api/
   - https://arche-curation.acdh-dev.oeaw.ac.at/api/
   - https://arche-dev.acdh-dev.oeaw.ac.at.at/api/
   - https://hdl.handle.net/
-  metadataMode: setInIndex.php
-  parentProperty: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
-  resourceProperties:
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
-  - https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
-  - http://www.w3.org/1999/02/22-rdf-syntax-ns#type
-  relativesProperties:
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
-  - https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
-  - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
-  - http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  metadataMode: resource
+  parentProperty: ~
+  resourceProperties: ['http://none']
+  relativesProperties: []
 iiifManifest:
   defaultMode: image
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/

@@ -1,7 +1,8 @@
 dissCacheService:
-  db: sqlite:/var/www/html/db.sqlite
+  db: sqlite:/var/www/html/db_manifest.sqlite
+  dbId: manifest
   log:
-    file: /var/www/html/log
+    file: /var/www/html/log_manifest
     level: debug
   ttl:
     resource: 3600     # 1 hour
@@ -15,7 +16,7 @@ dissCacheService:
   - https://arche-curation.acdh-dev.oeaw.ac.at/api/
   - https://arche-dev.acdh-dev.oeaw.ac.at.at/api/
   - https://hdl.handle.net/
-  metadataMode: setInIndex.php
+  metadataMode: "99999_99999_0_0"
   parentProperty: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
   resourceProperties:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
@@ -26,6 +27,7 @@ dissCacheService:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
+  - http://www.w3.org/1999/02/22-rdf-syntax-ns#type
   relativesProperties:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
   - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
@@ -35,6 +37,7 @@ dissCacheService:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
+  - http://www.w3.org/1999/02/22-rdf-syntax-ns#type
 iiifManifest:
   defaultMode: image
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
@@ -44,7 +47,7 @@ iiifManifest:
   schema:
     id: https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
     label: https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
-    next: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
+    nextItem: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
     parent: https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
     mime: https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
     imagePxWidth: https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
