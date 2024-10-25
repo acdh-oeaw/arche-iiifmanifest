@@ -22,7 +22,7 @@ jobs:
           prepareRepoConfig: true
       - name: build docker image
         run: |
-          mkdir build/docroot && cp -R `ls -1 | grep -v ^build` build/docroot/ && cp build/config/arche/*_image.yaml build/docroot/ && cp .htaccess build/docroot/
+          mkdir build/docroot && cp -R `ls -1 | grep -v ^build` build/docroot/ && cp build/config/arche/* build/docroot/ && cp .htaccess build/docroot/
           docker build --rm -t "acdhch/$RANCHER_NAMESPACE:latest" --build-arg VARIANT=production --label "buildUrl=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" build
       - name: test image
         run: |
