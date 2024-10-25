@@ -3,7 +3,7 @@
 /*
  * The MIT License
  *
- * Copyright 2024 Austrian Centre for Digital Humanities.
+ * Copyright 2024 zozlak.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,13 @@
  * THE SOFTWARE.
  */
 
-use acdhOeaw\arche\lib\dissCache\Service;
-use acdhOeaw\arche\iiifManifest\Resource;
+namespace acdhOeaw\arche\iiifManifest;
 
-header('Vary: Accept-Encoding');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: X-Requested-With, Content-Type');
-
-require_once 'vendor/autoload.php';
-
-$service = new Service(__DIR__ . '/config.yaml');
-$config  = $service->getConfig();
-$clbck   = fn($res, $param) => Resource::cacheHandler($res, $param, $config->iiifManifest, $service->getLog());
-$service->setCallback($clbck);
-
-$mode                                   = $_GET['mode'] ?? $config->iiifManifest->defaultMode;
-$config->dissCacheService->metadataMode = $mode === Resource::MODE_IMAGE ? '0_0_0_0' : '99999_99999_0_0';
-
-$response = $service->serveRequest($_GET['id'] ?? '', [$mode]);
-$response->send(true);
+/**
+ * Description of IiifException
+ *
+ * @author zozlak
+ */
+class IiifException extends \acdhOeaw\arche\lib\dissCache\ServiceException {
+    //put your code here
+}

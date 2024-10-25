@@ -1,0 +1,52 @@
+dissCacheService:
+  db: "sqlite::memory:"
+  log:
+    file: /tmp/__log__
+    level: debug
+  ttl:
+    resource: 3600     # 1 hour
+    response: 31536000 # 1 year
+  repoDb: []
+  allowedNmsp:
+  - https://id.acdh.oeaw.ac.at/
+  - https://arche.acdh.oeaw.ac.at/api/
+  - https://arche-curation.acdh-dev.oeaw.ac.at/api/
+  - https://arche-dev.acdh-dev.oeaw.ac.at.at/api/
+  - https://hdl.handle.net/
+  metadataMode: setInIndex.php
+  parentProperty: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
+  resourceProperties:
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
+  - https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+  relativesProperties:
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
+  - https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+iiifManifest:
+  defaultMode: image
+  baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
+  profile: http://iiif.io/api/image/2/level2.json
+  iiifServiceBase: https://loris.acdh.oeaw.ac.at/
+  fetchDimensions: false
+  schema:
+    id: https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
+    label: https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
+    next: https://vocabs.acdh.oeaw.ac.at/schema#hasNextItem
+    parent: https://vocabs.acdh.oeaw.ac.at/schema#isPartOf
+    mime: https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
+    imagePxWidth: https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
+    imagePxHeight: https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+    classes:
+      collection: https://vocabs.acdh.oeaw.ac.at/schema#Collection
+      topCollection: https://vocabs.acdh.oeaw.ac.at/schema#TopCollection
+    namespaces:
+      id: https://id.acdh.oeaw.ac.at/
