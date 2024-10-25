@@ -30,11 +30,11 @@ jobs:
           sleep 1
           for mode in image images manifest ; do
             # collection
-            curl -f -i "http:127.0.0.1/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/585903"
-            curl -f -i "http:127.0.0.1/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/585903"
+            curl -f -i "http:127.0.0.1/?mode=$mode&id=https%3A%2F%2Farche.acdh.oeaw.ac.at2Fapi2F585903"
+            curl -f -i "http:127.0.0.1/?mode=$mode&id=https%3A%2F%2Farche.acdh.oeaw.ac.at2Fapi2F585903"
             # resource
-            curl -f -i "http:127.0.0.1/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/600233"
-            curl -f -i "http:127.0.0.1/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/600233"
+            curl -f -i "http:127.0.0.1/?mode=$mode&id=https%3A%2F%2Farche.acdh.oeaw.ac.at2Fapi2F600233"
+            curl -f -i "http:127.0.0.1/?mode=$mode&id=https%3A%2F%2Farche.acdh.oeaw.ac.at%2Fapi%2F600233"
           done
       - uses: acdh-oeaw/arche_cicd_finish_action@main
         with:
