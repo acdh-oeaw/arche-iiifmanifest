@@ -23,6 +23,7 @@ dissCacheService:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
   relativesProperties:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
   - https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
@@ -31,6 +32,7 @@ dissCacheService:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
   - https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
 iiifManifest:
   defaultMode: image
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
@@ -45,6 +47,7 @@ iiifManifest:
     mime: https://vocabs.acdh.oeaw.ac.at/schema#hasFormat
     imagePxWidth: https://vocabs.acdh.oeaw.ac.at/schema#hasPixelWidth
     imagePxHeight: https://vocabs.acdh.oeaw.ac.at/schema#hasPixelHeight
+    iiifManifest: https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
     classes:
       collection: https://vocabs.acdh.oeaw.ac.at/schema#Collection
       topCollection: https://vocabs.acdh.oeaw.ac.at/schema#TopCollection
