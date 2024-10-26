@@ -13,9 +13,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "psr/log": "*",
-        "acdh-oeaw/arche-diss-cache": "^0.8",
-        "zozlak/logging": "^1.0"
+        "acdh-oeaw/arche-diss-cache": "^0.8"
     },
     "autoload": {
         "psr-4": {
