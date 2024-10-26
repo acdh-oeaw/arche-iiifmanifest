@@ -28,8 +28,14 @@ namespace acdhOeaw\arche\iiifManifest\tests;
 
 use quickRdf\DatasetNode;
 use quickRdf\DataFactory as DF;
+use termTemplates\PredicateTemplate as PT;
 use quickRdfIo\Util as RdfIoUtil;
+use acdhOeaw\arche\lib\dissCache\CachePdo;
+use acdhOeaw\arche\lib\dissCache\CacheItem;
+use acdhOeaw\arche\lib\dissCache\ResponseCache;
+use acdhOeaw\arche\lib\dissCache\RepoWrapperInterface;
 use acdhOeaw\arche\lib\Schema;
+use acdhOeaw\arche\lib\SearchConfig;
 use acdhOeaw\arche\lib\RepoResourceInterface;
 use acdhOeaw\arche\lib\dissCache\ResponseCacheItem;
 use acdhOeaw\arche\iiifManifest\Resource as IiifResource;
@@ -50,6 +56,14 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
     static public function setUpBeforeClass(): void {
         self::$cfg    = json_decode(json_encode(yaml_parse_file(__DIR__ . '/config.yaml')));
         self::$schema = new Schema(self::$cfg->iiifManifest->schema);
+    }
+
+    public function setUp(): void {
+        parent::setUp();
+
+        foreach (glob('/tmp/cachePdo*') as $i) {
+            unlink($i);
+        }
     }
 
     public function testModeImage(): void {
@@ -97,12 +111,41 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testHasIiifManifest(): void {
         // not a iiif-manifest file but we currenlty have none in ARCHE
-        $expected = json_decode(file_get_contents(__DIR__.'/data_hasIiifManifest.json'), true);
+        $expected = json_decode(file_get_contents(__DIR__ . '/data_hasIiifManifest.json'), true);
         $this->checkOutput($expected, $this->getOutput(self::COLLECTION_URL, IiifResource::MODE_MANIFEST, __DIR__ . '/meta_hasIiifManifest.ttl'));
     }
 
-    private function checkOutput(array $expected,
-                                 ResponseCacheItem $actual): void {
+    public function testCacheWholeCollection(): void {
+        $cfg                        = self::$cfg->dissCacheService;
+        $sc                         = new SearchConfig();
+        $sc->metadataMode           = $cfg->metadataMode;
+        $sc->metadataParentProperty = $cfg->parentProperty;
+        $sc->resourceProperties     = $cfg->resourceProperties;
+        $sc->relativesProperties    = $cfg->relativesProperties;
+
+        $graph   = new DatasetNode(DF::namedNode(self::RESOURCE_URL));
+        $graph->add(RdfIoUtil::parse(__DIR__ . '/meta.ttl', new DF(), 'text/turtle'));
+        $repoRes = $this->createStub(RepoResourceInterface::class);
+        $repoRes->method('getGraph')->willReturn($graph);
+        $repoRes->method('getIds')->willReturnCallback(fn() => $graph->listObjects(new PT(self::$schema->id))->getValues());
+        $repo    = $this->createStub(RepoWrapperInterface::class);
+        $repo->method('getResourceById')->willReturn($repoRes);
+        $repo->method('getModificationTimestamp')->willReturn(PHP_INT_MAX);
+
+        $db    = new CachePdo('sqlite:/tmp/cachePdo_db.sqlite', 'iiifManifest');
+        $clbck = fn($res, $param) => IiifResource::cacheHandler($res, $param, self::$cfg->iiifManifest);
+        $cache = new ResponseCache($db, $clbck, 0, 0, [$repo], $sc);
+
+        $cache->getResponse(['images'], self::RESOURCE_URL);
+        $resDbItem  = $db->get(self::RESOURCE_URL);
+        $collDbItem = $db->get(self::COLLECTION_URL);
+        $res2DbItem = $db->get('https://arche.acdh.oeaw.ac.at/api/11');
+        $this->assertInstanceOf(CacheItem::class, $resDbItem);
+        $this->assertEquals($collDbItem, $collDbItem);
+        $this->assertEquals($collDbItem, $res2DbItem);
+    }
+
+    private function checkOutput(array $expected, ResponseCacheItem $actual): void {
         $this->assertEquals(200, $actual->responseCode);
         $this->assertEquals(['Content-Type' => 'application/json'], $actual->headers);
         $this->assertFalse($actual->hit);

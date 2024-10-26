@@ -139,9 +139,9 @@ class Resource {
         $this->log?->info("resolved: $resolvedRes collection: $collectionRes first: $firstRes");
 
         // for better caching
-        //$node = $this->meta->getNode();
-        //$graph->add(DF::quad($node, $this->schema->id, $firstRes));
-        //$graph->add(DF::quad($node, $this->schema->id, $collectionRes));
+        $node = $this->meta->getNode();
+        $graph->add(DF::quad($node, $this->schema->id, $firstRes));
+        $graph->add(DF::quad($node, $this->schema->id, $collectionRes));
 
         return [$firstRes, $collectionRes];
     }
@@ -179,6 +179,7 @@ class Resource {
         $graph          = $this->meta->getDataset();
 
         // first check if a collection doesn't have a custom manifest
+        /** @phpstan-ignore property.notFound */
         $customManifest = $graph->getObjectValue(new QT($collectionRes, $this->schema->iiifManifest));
         if (!empty($customManifest) && $customManifest !== $this->config->defaultIiifManifestUri) {
             $data = @file_get_contents($customManifest);
@@ -271,7 +272,7 @@ class Resource {
             if ($graph->any($collectionTmpl->withSubject($i))) {
                 $sbj = $i;
                 // for better caching
-                //$graph->add(DF::quad($node, $this->schema->id, $i));
+                $graph->add(DF::quad($node, $this->schema->id, $i));
             }
         }
         return $sbj;
