@@ -1,7 +1,7 @@
 {
     "name": "acdh-oeaw/arche-iiif-manifest",
     "type": "library",
-    "description": "An ARCHE dissemination service generating IIIF manifests",
+    "description": "An ARCHE dissemination service generating IIIF presentation manifests and OpenSeadragon-compatible file lists",
     "keywords": [],
     "homepage": "https://github.com/acdh-oeaw/arche-iiif-manifest",
     "license": "MIT",
@@ -26,7 +26,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "acdhOeaw\\arche\\lib\\tests\\": "tests"
+            "acdhOeaw\\arche\\iiifManifest\\tests\\": "tests"
         }
     }
 }
