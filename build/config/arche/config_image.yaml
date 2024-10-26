@@ -26,6 +26,7 @@ iiifManifest:
   profile: http://iiif.io/api/image/2/level2.json
   iiifServiceBase: https://loris.acdh.oeaw.ac.at/
   fetchDimensions: false
+  defaultIiifManifestUri: https://id.acdh.oeaw.ac.at/dissemination/iiifManifest
   schema:
     id: https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
     label: https://vocabs.acdh.oeaw.ac.at/schema#hasTitle

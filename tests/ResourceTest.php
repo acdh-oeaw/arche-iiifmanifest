@@ -95,7 +95,14 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->checkOutput($expected, $this->getOutput(self::COLLECTION_URL, IiifResource::MODE_MANIFEST));
     }
 
-    private function checkOutput(array $expected, ResponseCacheItem $actual): void {
+    public function testHasIiifManifest(): void {
+        // not a iiif-manifest file but we currenlty have none in ARCHE
+        $expected = json_decode(file_get_contents(__DIR__.'/data_hasIiifManifest.json'), true);
+        $this->checkOutput($expected, $this->getOutput(self::COLLECTION_URL, IiifResource::MODE_MANIFEST, __DIR__ . '/meta_hasIiifManifest.ttl'));
+    }
+
+    private function checkOutput(array $expected,
+                                 ResponseCacheItem $actual): void {
         $this->assertEquals(200, $actual->responseCode);
         $this->assertEquals(['Content-Type' => 'application/json'], $actual->headers);
         $this->assertFalse($actual->hit);

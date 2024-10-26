@@ -1,0 +1,43 @@
+{
+    "@context": "http://iiif.io/api/presentation/2/context.json",
+    "@id": "https://arche-iiifmanifest.acdh.oeaw.ac.at/?id=https%3A%2F%2Farche.acdh.oeaw.ac.at%2Fapi%2F594566&mode=manifest",
+    "@type": "sc:Manifest",
+    "label": [{
+            "@value": "Custom IIIF Manifest",
+            "@language": "en"
+        }],
+    "description": " ",
+    "metadata": [],
+    "sequences": [{
+            "@id": "https://arche.acdh.oeaw.ac.at/api/594559#IIIF-Sequence",
+            "@type": "sc:Sequence",
+            "canvases": [{
+                    "@id": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-canvas",
+                    "@type": "sc:Canvas",
+                    "label": [{
+                            "@value": "With custom content",
+                            "@language": "en"
+                        }],
+                    "height": 4122,
+                    "width": 2827,
+                    "images": [{
+                            "@id": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-annotation",
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "on": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-canvas",
+                            "resource": {
+                                "@id": "https://loris.acdh.oeaw.ac.at/594821/info.json",
+                                "@type": "dctypes:Image",
+                                "service": {
+                                    "@context": "http://iiif.io/api/image/2/context.json",
+                                    "@id": "https://loris.acdh.oeaw.ac.at/594821",
+                                    "profile": "http://iiif.io/api/image/2/level2.json"
+                                },
+                                "height": "4122",
+                                "width": "2827",
+                                "format": "image/tiff"
+                            }
+                        }]
+                }]
+        }]
+}

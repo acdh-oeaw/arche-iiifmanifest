@@ -18,7 +18,7 @@ repo:1
     acdh:idPartOf           repo:100;
     acdh:hasNextItem        repo:11,
                             repo:2;
-    acdh:hasIiifManifest    <https://id.acdh.oeaw.ac.at/dissemination/iiifManifest>.
+    acdh:hasIiifManifest    <tests/data_hasIiifManifest.json>. # dirty trick but works
 
 repo:11
     a                       acdh:Resource;

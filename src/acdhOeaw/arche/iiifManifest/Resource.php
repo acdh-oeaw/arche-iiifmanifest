@@ -178,6 +178,16 @@ class Resource {
         $collectionTmpl = new PT($this->schema->parent, $collectionRes);
         $graph          = $this->meta->getDataset();
 
+        // first check if a collection doesn't have a custom manifest
+        $customManifest = $graph->getObjectValue(new QT($collectionRes, $this->schema->iiifManifest));
+        if (!empty($customManifest) && $customManifest !== $this->config->defaultIiifManifestUri) {
+            $data = @file_get_contents($customManifest);
+            if ($data === false) {
+                throw new IiifException("Failed to fetch custom IIIF Manifest from $customManifest\n", 500);
+            }
+            return $data;
+        }
+
         /** @var array<LiteralInterface> $titles */
         $titles = iterator_to_array($graph->listObjects($labelTmpl->withSubject($collectionRes)));
 
