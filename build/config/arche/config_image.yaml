@@ -18,8 +18,10 @@ dissCacheService:
   - https://hdl.handle.net/
   metadataMode: resource
   parentProperty: ~
-  resourceProperties: ['http://none']
-  relativesProperties: []
+  resourceProperties:
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
+  relativesProperties:
+  - https://vocabs.acdh.oeaw.ac.at/schema#hasIdentifier
 iiifManifest:
   defaultMode: image
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
