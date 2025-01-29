@@ -147,7 +147,7 @@ class Resource {
     }
 
     private function getImageList(TermInterface $firstRes,
-                                  TermInterface $collectionRes, $reqId): string {
+                                  TermInterface $collectionRes, string $reqId): string {
         $mimeTmpl       = new PT($this->schema->mime);
         $nextTmpl       = new PT($this->schema->nextItem);
         $collectionTmpl = new PT($this->schema->parent, $collectionRes);
