@@ -70,7 +70,7 @@ class Resource {
         $this->log    = $log;
     }
 
-    public function getOutput(string $mode): ResponseCacheItem {
+    public function getOutput(string $mode, string $reqId): ResponseCacheItem {
         if (!in_array($mode, [self::MODE_IMAGE, self::MODE_IMAGES, self::MODE_MANIFEST])) {
             throw new IiifException("Unknown mode $mode", 400);
         }
@@ -86,7 +86,7 @@ class Resource {
         $graph = $this->meta->getDataset();
         $sbj   = $firstRes;
         $data  = match ($mode) {
-            self::MODE_IMAGES => $this->getImageList($firstRes, $collectionRes),
+            self::MODE_IMAGES => $this->getImageList($firstRes, $collectionRes, $reqId),
             self::MODE_MANIFEST => $this->getManifest($firstRes, $collectionRes),
         };
         return new ResponseCacheItem($data, 200, ['Content-Type' => 'application/json'], false);
@@ -147,19 +147,19 @@ class Resource {
     }
 
     private function getImageList(TermInterface $firstRes,
-                                  TermInterface $collectionRes): string {
+                                  TermInterface $collectionRes, $reqId): string {
         $mimeTmpl       = new PT($this->schema->mime);
         $nextTmpl       = new PT($this->schema->nextItem);
         $collectionTmpl = new PT($this->schema->parent, $collectionRes);
         $graph          = $this->meta->getDataset();
-        $resolvedRes    = $this->meta->getNode();
+        //$resolvedRes    = $this->meta->getNode(); # in the current implementation it's a collection URI
 
         $data = ['index' => null, 'images' => []];
         $sbj  = $firstRes;
         while ($sbj) {
             $tmp = $graph->copy(new QT($sbj));
             if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
-                if ($resolvedRes->equals($sbj)) {
+                if ($reqId === (string) $sbj) {
                     $data['index'] = count($data['images']);
                 }
                 $data['images'][] = $this->getImageInfoUrl((string) $sbj);

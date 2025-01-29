@@ -136,7 +136,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $clbck = fn($res, $param) => IiifResource::cacheHandler($res, $param, self::$cfg->iiifManifest);
         $cache = new ResponseCache($db, $clbck, 0, 0, [$repo], $sc);
 
-        $cache->getResponse(['images'], self::RESOURCE_URL);
+        $cache->getResponse(['images', self::RESOURCE_URL], self::RESOURCE_URL);
         $resDbItem  = $db->get(self::RESOURCE_URL);
         $collDbItem = $db->get(self::COLLECTION_URL);
         $res2DbItem = $db->get('https://arche.acdh.oeaw.ac.at/api/11');
@@ -156,7 +156,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                                string $metaPath = __DIR__ . '/meta.ttl'): ResponseCacheItem {
         $repoRes = $this->getRepoResourceStub($resUrl, $metaPath);
         $iiifRes = new IiifResource($repoRes, self::$cfg->iiifManifest);
-        return $iiifRes->getOutput($mode);
+        return $iiifRes->getOutput($mode, $resUrl);
     }
 
     private function getRepoResourceStub(string $resUrl,
