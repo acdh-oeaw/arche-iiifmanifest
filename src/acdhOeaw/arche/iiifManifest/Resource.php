@@ -32,6 +32,7 @@ use rdfInterface\DatasetInterface;
 use rdfInterface\DatasetNodeInterface;
 use rdfInterface\TermInterface;
 use rdfInterface\LiteralInterface;
+use rdfInterface\QuadInterface;
 use quickRdf\DataFactory as DF;
 use quickRdf\NamedNode;
 use termTemplates\QuadTemplate as QT;
@@ -112,6 +113,7 @@ class Resource {
         $graph      = $this->meta->getDataset();
         $nextTmpl   = new PT($this->schema->nextItem);
         $parentTmpl = new PT($this->schema->parent);
+        $idTmpl     = new PT($this->schema->id);
 
         $resolvedRes   = $this->meta->getNode();
         $firstRes      = $resolvedRes;
@@ -140,8 +142,8 @@ class Resource {
 
         // for better caching
         $node = $this->meta->getNode();
-        $graph->add(DF::quad($node, $this->schema->id, $firstRes));
-        $graph->add(DF::quad($node, $this->schema->id, $collectionRes));
+        $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($firstRes)));
+        $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($collectionRes)));
 
         return [$firstRes, $collectionRes];
     }
@@ -151,6 +153,7 @@ class Resource {
         $mimeTmpl       = new PT($this->schema->mime);
         $nextTmpl       = new PT($this->schema->nextItem);
         $collectionTmpl = new PT($this->schema->parent, $collectionRes);
+        $idTmpl         = new PT($this->schema->id);
         $graph          = $this->meta->getDataset();
         //$resolvedRes    = $this->meta->getNode(); # in the current implementation it's a collection URI
 
@@ -159,7 +162,7 @@ class Resource {
         while ($sbj) {
             $tmp = $graph->copy(new QT($sbj));
             if (str_starts_with((string) $tmp->getObjectValue($mimeTmpl), 'image/')) {
-                if ($reqId === (string) $sbj) {
+                if ($tmp->any($idTmpl->withObject($reqId))) {
                     $data['index'] = count($data['images']);
                 }
                 $data['images'][] = $this->getImageInfoUrl((string) $sbj);
@@ -264,6 +267,7 @@ class Resource {
 
     private function getNextSbj(DatasetInterface $data, PT $collectionTmpl): TermInterface | null {
         $nextTmpl = new PT($this->schema->nextItem);
+        $idTmpl   = new PT($this->schema->id);
         $node     = $this->meta->getNode();
         $graph    = $this->meta->getDataset();
 
@@ -272,7 +276,7 @@ class Resource {
             if ($graph->any($collectionTmpl->withSubject($i))) {
                 $sbj = $i;
                 // for better caching
-                $graph->add(DF::quad($node, $this->schema->id, $i));
+                $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($sbj)));
             }
         }
         return $sbj;

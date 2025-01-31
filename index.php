@@ -43,5 +43,9 @@ $mode    ??= $config->iiifManifest->defaultMode;
 $clbck   = fn($res, $param) => Resource::cacheHandler($res, $param, $config->iiifManifest, $service->getLog());
 $service->setCallback($clbck);
 
-$response = $service->serveRequest($id, [$mode, $id]);
+$param    = [
+    $mode,
+    $mode === Resource::MODE_IMAGES ? $id : '',
+];
+$response = $service->serveRequest($id, $param);
 $response->send(true);
