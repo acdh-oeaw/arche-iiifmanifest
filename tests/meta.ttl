@@ -4,16 +4,19 @@
 
 repo:100
     a                   acdh:TopCollection;
+    acdh:hasIdentifier  repo:100;
     acdh:hasTitle       "top collection"@en.
 
 repo:0
     a                   acdh:Collection;
+    acdh:hasIdentifier  repo:0;
     acdh:hasTitle       "collection 0"@en;
     acdh:idPartOf       repo:100;
     acdh:hasNextItem    repo:1.
 
 repo:1
     a                       acdh:Collection;
+    acdh:hasIdentifier      repo:1;
     acdh:hasTitle           "collection 1"@en;
     acdh:idPartOf           repo:100;
     acdh:hasNextItem        repo:11,
@@ -22,6 +25,7 @@ repo:1
 
 repo:11
     a                       acdh:Resource;
+    acdh:hasIdentifier      repo:11;
     acdh:hasTitle           "resource 1"@en;
     acdh:hasNextItem        repo:12;
     acdh:isPartOf           repo:1;
@@ -31,6 +35,7 @@ repo:11
 
 repo:12
     a                   acdh:Resource;
+    acdh:hasIdentifier  repo:12;
     acdh:hasTitle       "resource 2"@en;
     acdh:hasNextItem    repo:13;
     acdh:isPartOf       repo:1;
@@ -38,6 +43,7 @@ repo:12
 
 repo:13
     a                   acdh:Resource;
+    acdh:hasIdentifier  repo:13;
     acdh:hasTitle       "resource 3"@en;
     acdh:hasNextItem    repo:14;
     acdh:isPartOf       repo:1;
@@ -45,11 +51,13 @@ repo:13
 
 repo:14
     a                   acdh:Resource;
+    acdh:hasIdentifier  repo:14;
     acdh:hasTitle       "resource 4"@en;
     acdh:isPartOf       repo:1;
     acdh:hasFormat      "text/plain".
 
 repo:2
     a                   acdh:Collection;
+    acdh:hasIdentifier  repo:2;
     acdh:hasTitle       "collection 2"@en;
     acdh:idPartOf       repo:100.
