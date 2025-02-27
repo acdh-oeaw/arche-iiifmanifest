@@ -26,7 +26,7 @@ jobs:
           docker build --rm -t "acdhch/$RANCHER_NAMESPACE:latest" --build-arg VARIANT=production --label "buildUrl=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" build
       - name: test image
         run: |
-          composer require -n zozlak/yaml-merge
+          composer update
           vendor/bin/yaml-edit.php --src build/config/arche/config_image.yaml --src '{"dissCacheService": {"repoDb": []}}' config_image.yaml
           vendor/bin/yaml-edit.php --src build/config/arche/config_manifest.yaml --src '{"dissCacheService": {"repoDb": []}}' config_manifest.yaml
           docker run -d --name "$RANCHER_NAMESPACE" -v `pwd`/config_image.yaml:/var/www/html/config_image.yaml -v `pwd`/config_manifest.yaml:/var/www/html/config_manifest.yaml -p 8080:80 "acdhch/$RANCHER_NAMESPACE:latest"

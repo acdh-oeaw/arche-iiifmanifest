@@ -22,7 +22,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "*",
-        "phpstan/phpstan": "*"
+        "phpstan/phpstan": "*",
+        "zozlak/yaml-merge": "^1.0"
     },
     "autoload-dev": {
         "psr-4": {
