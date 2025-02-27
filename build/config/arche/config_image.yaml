@@ -14,7 +14,7 @@ dissCacheService:
   - https://id.acdh.oeaw.ac.at/
   - https://arche.acdh.oeaw.ac.at/api/
   - https://arche-curation.acdh-dev.oeaw.ac.at/api/
-  - https://arche-dev.acdh-dev.oeaw.ac.at.at/api/
+  - https://arche-dev.acdh-dev.oeaw.ac.at/api/
   - https://hdl.handle.net/
   metadataMode: resource
   parentProperty: ~
