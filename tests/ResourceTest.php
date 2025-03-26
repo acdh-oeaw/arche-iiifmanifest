@@ -49,6 +49,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     const COLLECTION_URL = 'https://arche.acdh.oeaw.ac.at/api/1';
     const RESOURCE_URL   = 'https://arche.acdh.oeaw.ac.at/api/13';
+    const MIXED_URL      = 'https://arche.acdh.oeaw.ac.at/api/100';
 
     static private object $cfg;
     static private Schema $schema;
@@ -99,8 +100,8 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                     '@id'      => 'https://arche.acdh.oeaw.ac.at/api/1#IIIF-Sequence',
                     '@type'    => 'sc:Sequence',
                     'canvases' => [
-                        $this->getCanvas('https://arche.acdh.oeaw.ac.at/api/11', 'resource 1', 1234, 2345),
-                        $this->getCanvas('https://arche.acdh.oeaw.ac.at/api/13', 'resource 3', null, null),
+                        $this->getCanvas('https://arche.acdh.oeaw.ac.at/api/11', 'resource 11', 1234, 2345),
+                        $this->getCanvas('https://arche.acdh.oeaw.ac.at/api/13', 'resource 13', null, null),
                     ]
                 ],
             ]
@@ -143,6 +144,51 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertInstanceOf(CacheItem::class, $resDbItem);
         $this->assertEquals($collDbItem, $collDbItem);
         $this->assertEquals($collDbItem, $res2DbItem);
+    }
+
+    public function testModeCollection(): void {
+        $expected = [
+            '@context' => 'http://iiif.io/api/presentation/2/context.json',
+            '@id'      => 'https://arche-iiifmanifest.acdh.oeaw.ac.at/?',
+            '@type'    => 'sc:Collection',
+            'label'    => [['@value' => 'top collection', '@language' => 'en']],
+            'items'    => [
+                [
+                    '@id'   => 'https://arche-iiifmanifest.acdh.oeaw.ac.at/?mode=collection&id=' . rawurlencode('https://arche.acdh.oeaw.ac.at/api/0'),
+                    '@type' => 'sc:Collection',
+                    'label' => [['@value' => 'collection 0', '@language' => 'en']],
+                ],
+                [
+                    '@id'   => 'https://arche-iiifmanifest.acdh.oeaw.ac.at/?mode=collection&id=' . rawurlencode('https://arche.acdh.oeaw.ac.at/api/1'),
+                    '@type' => 'sc:Collection',
+                    'label' => [['@value' => 'collection 1', '@language' => 'en']],
+                ],
+                [
+                    '@id'   => 'https://arche-iiifmanifest.acdh.oeaw.ac.at/?mode=collection&id=' . rawurlencode('https://arche.acdh.oeaw.ac.at/api/2'),
+                    '@type' => 'sc:Collection',
+                    'label' => [['@value' => 'collection 2', '@language' => 'en']],
+                ],
+                [
+                    '@id'   => 'https://arche-iiifmanifest.acdh.oeaw.ac.at/?mode=manifest&id=' . rawurlencode('https://arche.acdh.oeaw.ac.at/api/100'),
+                    '@type' => 'sc:Manifest',
+                    'label' => [['@value' => 'top collection', '@language' => 'en']],
+                ],
+            ]
+        ];
+        $this->checkOutput($expected, $this->getOutput(self::MIXED_URL, IiifResource::MODE_COLLECTION));
+    }
+
+    public function testGuessMode(): void {
+        $output = $this->getOutput(self::MIXED_URL, IiifResource::MODE_AUTO);
+        $this->assertEquals('sc:Collection', json_decode($output->body, true)['@type']);
+
+        $expected = [];
+        $output   = $this->getOutput(self::COLLECTION_URL, IiifResource::MODE_AUTO);
+        $this->assertEquals('sc:Manifest', json_decode($output->body, true)['@type']);
+
+        $expected = [];
+        $output   = $this->getOutput(self::RESOURCE_URL, IiifResource::MODE_AUTO);
+        $this->assertEquals('sc:Manifest', json_decode($output->body, true)['@type']);
     }
 
     private function checkOutput(array $expected, ResponseCacheItem $actual): void {
@@ -188,10 +234,10 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             'width'  => $width,
             'images' => [
                 [
-                    '@id'        => $url . '#IIIF-annotation',
+                    '@id'        => $url . '#IIIF-Annotation',
                     '@type'      => 'oa:Annotation',
                     'motivation' => 'sc:painting',
-                    'on'         => $url . '#IIIF-canvas',
+                    'on'         => $url . '#IIIF-Canvas',
                     'resource'   => [
                         '@id'     => self::$cfg->iiifManifest->iiifServiceBase . $id . '/info.json',
                         '@type'   => 'dctypes:Image',

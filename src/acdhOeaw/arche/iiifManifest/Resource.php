@@ -43,9 +43,18 @@ use acdhOeaw\arche\lib\dissCache\ResponseCacheItem;
 
 class Resource {
 
-    const MODE_IMAGE    = 'image';
-    const MODE_IMAGES   = 'images';
-    const MODE_MANIFEST = 'manifest';
+    const MODE_IMAGE      = 'image';
+    const MODE_IMAGES     = 'images';
+    const MODE_MANIFEST   = 'manifest';
+    const MODE_COLLECTION = 'collection';
+    const MODE_AUTO       = 'auto';
+    const MODES           = [
+        self::MODE_IMAGE,
+        self::MODE_IMAGES,
+        self::MODE_MANIFEST,
+        self::MODE_COLLECTION,
+        self::MODE_AUTO,
+    ];
 
     /**
      * @param array<mixed> $param
@@ -72,7 +81,7 @@ class Resource {
     }
 
     public function getOutput(string $mode, string $reqId): ResponseCacheItem {
-        if (!in_array($mode, [self::MODE_IMAGE, self::MODE_IMAGES, self::MODE_MANIFEST])) {
+        if (!in_array($mode, self::MODES)) {
             throw new IiifException("Unknown mode $mode", 400);
         }
 
@@ -83,12 +92,16 @@ class Resource {
         }
 
         list($firstRes, $collectionRes) = $this->findFirstResource();
+        if ($mode === self::MODE_AUTO) {
+            $mode = $this->guessMode($firstRes, $collectionRes);
+        }
 
         $graph = $this->meta->getDataset();
         $sbj   = $firstRes;
         $data  = match ($mode) {
             self::MODE_IMAGES => $this->getImageList($firstRes, $collectionRes, $reqId),
             self::MODE_MANIFEST => $this->getManifest($firstRes, $collectionRes),
+            self::MODE_COLLECTION => $this->getCollection($firstRes, $collectionRes),
         };
         return new ResponseCacheItem($data, 200, ['Content-Type' => 'application/json'], false);
     }
@@ -137,6 +150,8 @@ class Resource {
                     }
                 }
             }
+        } else {
+            $firstRes = $this->getNextSbj($this->meta, $collectionTmpl);
         }
         $this->log?->info("resolved: $resolvedRes collection: $collectionRes first: $firstRes");
 
@@ -172,6 +187,46 @@ class Resource {
         return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
+    private function guessMode(TermInterface $firstRes,
+                               TermInterface $collectionRes): string {
+        $graph               = $this->meta->getDataset();
+        $collectionTmpl      = new PT($this->schema->parent, $collectionRes);
+        $collectionClassTmpl = new PT(DF::namedNode(RDF::RDF_TYPE), $this->schema->classes->collection);
+
+        $classes    = $this->meta->listObjects(new PT(DF::namedNode(RDF::RDF_TYPE)))->getValues();
+        $colClasses = [
+            (string) $this->schema->classes->collection,
+            (string) $this->schema->classes->topCollection,
+        ];
+        if (count(array_intersect($classes, $colClasses)) === 0) {
+            return self::MODE_MANIFEST;
+        }
+
+        $sbj = $firstRes;
+        while ($sbj) {
+            $tmp = $graph->copy(new QT($sbj));
+            if ($tmp->any($collectionClassTmpl)) {
+                return self::MODE_COLLECTION;
+            }
+            $sbj = $this->getNextSbj($tmp, $collectionTmpl);
+        }
+        return self::MODE_MANIFEST;
+    }
+
+    private function getCustomManifest(DatasetInterface $graph,
+                                       TermInterface $collectionRes): string | null {
+        /** @phpstan-ignore property.notFound */
+        $customManifest = $graph->getObjectValue(new QT($collectionRes, $this->schema->iiifManifest));
+        if (!empty($customManifest) && $customManifest !== $this->config->defaultIiifManifestUri) {
+            $data = @file_get_contents($customManifest);
+            if ($data === false) {
+                throw new IiifException("Failed to fetch custom IIIF Manifest from $customManifest\n", 500);
+            }
+            return $data;
+        }
+        return null;
+    }
+
     private function getManifest(TermInterface $firstRes,
                                  TermInterface $collectionRes): string {
         $labelTmpl      = new PT($this->schema->label);
@@ -181,15 +236,9 @@ class Resource {
         $collectionTmpl = new PT($this->schema->parent, $collectionRes);
         $graph          = $this->meta->getDataset();
 
-        // first check if a collection doesn't have a custom manifest
-        /** @phpstan-ignore property.notFound */
-        $customManifest = $graph->getObjectValue(new QT($collectionRes, $this->schema->iiifManifest));
-        if (!empty($customManifest) && $customManifest !== $this->config->defaultIiifManifestUri) {
-            $data = @file_get_contents($customManifest);
-            if ($data === false) {
-                throw new IiifException("Failed to fetch custom IIIF Manifest from $customManifest\n", 500);
-            }
-            return $data;
+        $customManifest = $this->getCustomManifest($graph, $collectionRes);
+        if (!empty($customManifest)) {
+            return $customManifest;
         }
 
         /** @var array<LiteralInterface> $titles */
@@ -223,10 +272,10 @@ class Resource {
                     'width'  => !empty($width) ? (int) $width : null,
                     'images' => [
                         [
-                            '@id'        => $sbj . '#IIIF-annotation',
+                            '@id'        => $sbj . '#IIIF-Annotation',
                             '@type'      => 'oa:Annotation',
                             'motivation' => 'sc:painting',
-                            'on'         => $sbj . '#IIIF-canvas',
+                            'on'         => $sbj . '#IIIF-Canvas',
                             'resource'   => [
                                 '@id'     => $infoUrl,
                                 '@type'   => 'dctypes:Image',
@@ -260,6 +309,56 @@ class Resource {
                     ],
                 ],
             ];
+        }
+
+        return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    private function getCollection(TermInterface $firstRes,
+                                   TermInterface $collectionRes): string {
+        $labelTmpl      = new PT($this->schema->label);
+        $collectionTmpl = new PT($this->schema->parent, $collectionRes);
+        $classTmpl      = new PT(DF::namedNode(RDF::RDF_TYPE));
+        $graph          = $this->meta->getDataset();
+
+        $customManifest = $this->getCustomManifest($graph, $collectionRes);
+        if (!empty($customManifest)) {
+            return $customManifest;
+        }
+
+        /** @var array<LiteralInterface> $titles */
+        $titles = iterator_to_array($graph->listObjects($labelTmpl->withSubject($collectionRes)));
+        $data   = [
+            '@context' => 'http://iiif.io/api/presentation/2/context.json',
+            '@id'      => $this->config->baseUrl . '?' . http_build_query($_GET),
+            '@type'    => 'sc:Collection',
+            'label'    => array_map(fn($x) => $this->getManifestTitle($x), $titles),
+            'items'    => [],
+        ];
+
+        $manifestIncluded = false;
+        $sbj              = $firstRes;
+        while ($sbj) {
+            $tmp          = $graph->copy(new QT($sbj));
+            $isCollection = in_array((string) $this->schema->classes->collection, $tmp->listObjects($classTmpl)->getValues());
+            $labels       = iterator_to_array($tmp->listObjects($labelTmpl));
+            if ($isCollection) {
+                $param           = ['mode' => 'collection', 'id' => (string) $sbj];
+                $data['items'][] = [
+                    '@id'   => $this->config->baseUrl . '?' . http_build_query($param),
+                    '@type' => 'sc:Collection',
+                    'label' => array_map(fn($x) => $this->getManifestTitle($x), $labels),
+                ];
+            } elseif (!$manifestIncluded) {
+                $param            = ['mode' => 'manifest', 'id' => (string) $collectionRes];
+                $data['items'][]  = [
+                    '@id'   => $this->config->baseUrl . '?' . http_build_query($param),
+                    '@type' => 'sc:Manifest',
+                    'label' => array_map(fn($x) => $this->getManifestTitle($x), $titles),
+                ];
+                $manifestIncluded = true;
+            }
+            $sbj = $this->getNextSbj($tmp, $collectionTmpl);
         }
 
         return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
