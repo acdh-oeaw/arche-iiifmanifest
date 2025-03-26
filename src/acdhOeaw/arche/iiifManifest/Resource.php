@@ -85,7 +85,7 @@ class Resource {
             throw new IiifException("Unknown mode $mode", 400);
         }
 
-        if ($mode === 'image') {
+        if ($mode === self::MODE_IMAGE) {
             $location = $this->getImageInfoUrl((string) $this->meta->getNode());
             $headers  = ['Location' => $location];
             return new ResponseCacheItem("Redirect to $location", 302, $headers, false);
@@ -102,6 +102,7 @@ class Resource {
             self::MODE_IMAGES => $this->getImageList($firstRes, $collectionRes, $reqId),
             self::MODE_MANIFEST => $this->getManifest($firstRes, $collectionRes),
             self::MODE_COLLECTION => $this->getCollection($firstRes, $collectionRes),
+            default => throw new IiifException("Unknown mode $mode", 400),
         };
         return new ResponseCacheItem($data, 200, ['Content-Type' => 'application/json'], false);
     }
@@ -341,6 +342,7 @@ class Resource {
         while ($sbj) {
             $tmp          = $graph->copy(new QT($sbj));
             $isCollection = in_array((string) $this->schema->classes->collection, $tmp->listObjects($classTmpl)->getValues());
+            /** @var array<LiteralInterface> $labels */
             $labels       = iterator_to_array($tmp->listObjects($labelTmpl));
             if ($isCollection) {
                 $param           = ['mode' => 'collection', 'id' => (string) $sbj];
