@@ -31,7 +31,7 @@ jobs:
           vendor/bin/yaml-edit.php --src build/config/arche/config_manifest.yaml --src '{"dissCacheService": {"repoDb": []}}' config_manifest.yaml
           docker run -d --name "$RANCHER_NAMESPACE" -v `pwd`/config_image.yaml:/var/www/html/config_image.yaml -v `pwd`/config_manifest.yaml:/var/www/html/config_manifest.yaml -p 8080:80 "acdhch/$RANCHER_NAMESPACE:latest"
           sleep 1
-          for mode in image images manifest ; do
+          for mode in image images manifest collection auto; do
             # collection
             curl -f -i "http://127.0.0.1:8080/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/585903"
             curl -f -i "http://127.0.0.1:8080/?mode=$mode&id=https://arche.acdh.oeaw.ac.at/api/585903"
