@@ -39,7 +39,7 @@ dissCacheService:
   - https://vocabs.acdh.oeaw.ac.at/schema#hasIiifManifest
   - http://www.w3.org/1999/02/22-rdf-syntax-ns#type
 iiifManifest:
-  defaultMode: image
+  defaultMode: manifest
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
   profile: http://iiif.io/api/image/2/level2.json
   iiifServiceBase: https://loris.acdh.oeaw.ac.at/
