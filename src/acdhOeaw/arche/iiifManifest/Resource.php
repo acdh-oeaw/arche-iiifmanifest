@@ -154,6 +154,9 @@ class Resource {
         } else {
             $firstRes = $this->getNextSbj($this->meta, $collectionTmpl);
         }
+        if ($firstRes === null) {
+            throw new IiifException("Can not determine collection children order as they are not linked with the " . $this->schema->nextItem ." property\n", 400);
+        }
         $this->log?->info("resolved: $resolvedRes collection: $collectionRes first: $firstRes");
 
         // for better caching
