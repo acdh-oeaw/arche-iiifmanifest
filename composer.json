@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "acdh-oeaw/arche-diss-cache": "^0.11"
+        "acdh-oeaw/arche-diss-cache": "^1"
     },
     "autoload": {
         "psr-4": {
