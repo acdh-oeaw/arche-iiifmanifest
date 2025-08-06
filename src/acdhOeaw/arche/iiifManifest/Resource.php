@@ -38,6 +38,8 @@ use quickRdf\NamedNode;
 use termTemplates\QuadTemplate as QT;
 use termTemplates\PredicateTemplate as PT;
 use acdhOeaw\arche\lib\Schema;
+use acdhOeaw\arche\lib\SearchConfig;
+use acdhOeaw\arche\lib\SearchTerm;
 use acdhOeaw\arche\lib\RepoResourceInterface;
 use acdhOeaw\arche\lib\dissCache\ResponseCacheItem;
 
@@ -67,13 +69,17 @@ class Resource {
         return $iiifRes->getOutput(...$param);
     }
 
+    private RepoResourceInterface $res;
     private DatasetNodeInterface $meta;
     private object $config;
     private Schema $schema;
     private LoggerInterface | null $log;
+    private int $searchOrder;
+    private TermInterface $searchOrderProperty;
 
     public function __construct(RepoResourceInterface $res, object $config,
                                 ?LoggerInterface $log = null) {
+        $this->res    = $res;
         $this->meta   = $res->getGraph();
         $this->config = $config;
         $this->schema = new Schema($config->schema);
@@ -91,7 +97,11 @@ class Resource {
             return new ResponseCacheItem("Redirect to $location", 302, $headers, false);
         }
 
-        list($firstRes, $collectionRes) = $this->findFirstResource();
+        try {
+            list($firstRes, $collectionRes) = $this->findFirstResource();
+        } catch (NoNextItemException $e) {
+            list($firstRes, $collectionRes) = $this->findFirstResourceNoNextItem();
+        }
         if ($mode === self::MODE_AUTO) {
             $mode = $this->guessMode($firstRes, $collectionRes);
         }
@@ -117,6 +127,53 @@ class Resource {
      */
     private function getManifestTitle(LiteralInterface $x): array {
         return ['@value' => $x->getValue(), '@language' => $x->getLang()];
+    }
+
+    /**
+     * 
+     * @return array{0: TermInterface, 1: TermInterface}
+     */
+    private function findFirstResourceNoNextItem(): array {
+        $graph      = $this->meta->getDataset();
+        $parentTmpl = new PT($this->schema->parent);
+
+        $resolvedRes   = $this->meta->getNode();
+        $collectionRes = $resolvedRes;
+
+        $collectionClassTmpl    = new QT($resolvedRes, DF::namedNode(RDF::RDF_TYPE), $this->schema->classes->collection);
+        $topCollectionClassTmpl = new QT($resolvedRes, DF::namedNode(RDF::RDF_TYPE), $this->schema->classes->topCollection);
+        if ($graph->none($collectionClassTmpl) && $graph->none($topCollectionClassTmpl)) {
+            $collectionRes = $graph->getObject($parentTmpl->withSubject($resolvedRes));
+        }
+
+        $repo                      = $this->res->getRepo();
+        $this->searchOrderProperty = $repo->getSchema()->searchOrder;
+        $cfg                       = new SearchConfig();
+        $cfg->metadataMode         = '0_0_0_0';
+        $cfg->resourceProperties   = [
+            (string) $this->schema->id,
+            (string) $this->schema->label,
+            (string) $this->schema->mime,
+            (string) $this->schema->imagePxWidth,
+            (string) $this->schema->imagePxHeight,
+        ];
+        $cfg->orderBy              = [$this->config->orderBy];
+        $cfg->orderByLang          = $this->config->orderByLang;
+        $term                      = new SearchTerm((string) $this->schema->parent, $collectionRes, '=', SearchTerm::TYPE_RELATION);
+        $graph->add($repo->getGraphBySearchTerms([$term], $cfg));
+        $this->searchOrder         = 1;
+        $firstRes                  = $graph->getSubject(new PT($this->searchOrderProperty, (string) $this->searchOrder));
+        if ($firstRes == null) {
+            throw new IiifException("Unable to find first child of $collectionRes", 500);
+        }
+
+        // for better caching
+        $idTmpl = new PT($this->schema->id);
+        $node   = $this->meta->getNode();
+        $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($firstRes)));
+        $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($collectionRes)));
+
+        return [$firstRes, $collectionRes];
     }
 
     /**
@@ -155,7 +212,8 @@ class Resource {
             $firstRes = $this->getNextSbj($this->meta, $collectionTmpl);
         }
         if ($firstRes === null) {
-            throw new IiifException("Can not determine collection children order as they are not linked with the " . $this->schema->nextItem ." property\n", 400);
+            $msg = "Can not determine collection children order as they are not linked with the " . $this->schema->nextItem . " property\n";
+            throw new NoNextItemException($msg, 400);
         }
         $this->log?->info("resolved: $resolvedRes collection: $collectionRes first: $firstRes");
 
@@ -370,17 +428,24 @@ class Resource {
     }
 
     private function getNextSbj(DatasetInterface $data, PT $collectionTmpl): TermInterface | null {
-        $nextTmpl = new PT($this->schema->nextItem);
-        $idTmpl   = new PT($this->schema->id);
-        $node     = $this->meta->getNode();
-        $graph    = $this->meta->getDataset();
+        $graph = $this->meta->getDataset();
 
-        $sbj = null;
-        foreach ($data->listObjects($nextTmpl) as $i) {
-            if ($graph->any($collectionTmpl->withSubject($i))) {
-                $sbj = $i;
-                // for better caching
-                $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($sbj)));
+        if (isset($this->searchOrder)) {
+            $this->searchOrder++;
+            $tmpl = new PT($this->searchOrderProperty, (string) $this->searchOrder);
+            $sbj  = $graph->getSubject($tmpl);
+        } else {
+            $nextTmpl = new PT($this->schema->nextItem);
+            $idTmpl   = new PT($this->schema->id);
+            $node     = $this->meta->getNode();
+
+            $sbj = null;
+            foreach ($data->listObjects($nextTmpl) as $i) {
+                if ($graph->any($collectionTmpl->withSubject($i))) {
+                    $sbj = $i;
+                    // for better caching
+                    $graph->add($graph->map(fn(QuadInterface $x) => $x->withSubject($node), $idTmpl->withSubject($sbj)));
+                }
             }
         }
         return $sbj;
