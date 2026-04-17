@@ -191,6 +191,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('sc:Manifest', json_decode($output->body, true)['@type']);
     }
 
+    /**
+     * @param array<mixed> $expected
+     */
     private function checkOutput(array $expected, ResponseCacheItem $actual): void {
         $this->assertEquals(200, $actual->responseCode);
         $this->assertEquals(['Content-Type' => 'application/json'], $actual->headers);

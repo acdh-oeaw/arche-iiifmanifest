@@ -48,4 +48,4 @@ $param    = [
     $mode === Resource::MODE_IMAGES ? $id : '',
 ];
 $response = $service->serveRequest($id, $param);
-$response->send(true);
+$response->send();
