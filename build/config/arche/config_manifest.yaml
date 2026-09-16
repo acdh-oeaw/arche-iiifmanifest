@@ -43,7 +43,7 @@ iiifManifest:
   defaultMode: manifest
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
   profile: http://iiif.io/api/image/2/level2.json
-  iiifServiceBase: https://arche-iiifimage/
+  iiifServiceBase: https://arche-iiifimage.acdh.oeaw.ac.at/
   fetchDimensions: false
   defaultIiifManifestUri: https://id.acdh.oeaw.ac.at/dissemination/iiifManifest
   orderBy: https://vocabs.acdh.oeaw.ac.at/schema#hasTitle
