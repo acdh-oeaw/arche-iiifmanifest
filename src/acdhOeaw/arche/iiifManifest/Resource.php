@@ -327,7 +327,7 @@ class Resource {
                 /** @var array<LiteralInterface> $labels */
                 $labels     = iterator_to_array($tmp->listObjects($labelTmpl));
                 $canvases[] = [
-                    '@id'    => $sbj . '#IIIF-canvas',
+                    '@id'    => $sbj . '#IIIF-Canvas',
                     '@type'  => 'sc:Canvas',
                     'label'  => array_map(fn($x) => $this->getManifestTitle($x), $labels),
                     'height' => !empty($height) ? (int) $height : null,
