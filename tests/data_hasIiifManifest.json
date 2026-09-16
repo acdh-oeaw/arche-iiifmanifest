@@ -12,7 +12,7 @@
             "@id": "https://arche.acdh.oeaw.ac.at/api/594559#IIIF-Sequence",
             "@type": "sc:Sequence",
             "canvases": [{
-                    "@id": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-canvas",
+                    "@id": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-Canvas",
                     "@type": "sc:Canvas",
                     "label": [{
                             "@value": "With custom content",
@@ -24,13 +24,13 @@
                             "@id": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-annotation",
                             "@type": "oa:Annotation",
                             "motivation": "sc:painting",
-                            "on": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-canvas",
+                            "on": "https://arche.acdh.oeaw.ac.at/api/594821#IIIF-Canvas",
                             "resource": {
-                                "@id": "https://loris.acdh.oeaw.ac.at/594821/info.json",
+                                "@id": "https://arche.acdh.oeaw.ac.at/api/594821",
                                 "@type": "dctypes:Image",
                                 "service": {
                                     "@context": "http://iiif.io/api/image/2/context.json",
-                                    "@id": "https://loris.acdh.oeaw.ac.at/594821",
+                                    "@id": "https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/594821",
                                     "profile": "http://iiif.io/api/image/2/level2.json"
                                 },
                                 "height": "4122",

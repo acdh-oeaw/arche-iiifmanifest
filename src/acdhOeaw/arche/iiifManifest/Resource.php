@@ -339,7 +339,7 @@ class Resource {
                             'motivation' => 'sc:painting',
                             'on'         => $sbj . '#IIIF-Canvas',
                             'resource'   => [
-                                '@id'     => $infoUrl,
+                                '@id'     => (string) $sbj,
                                 '@type'   => 'dctypes:Image',
                                 'service' => [
                                     '@context' => 'http://iiif.io/api/image/2/context.json',

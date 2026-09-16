@@ -68,8 +68,8 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testModeImage(): void {
-        $headers  = ['Location' => 'https://loris.acdh.oeaw.ac.at/13/info.json'];
-        $expected = new ResponseCacheItem("Redirect to https://loris.acdh.oeaw.ac.at/13/info.json", 302, $headers, false);
+        $headers  = ['Location' => 'https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/13/info.json'];
+        $expected = new ResponseCacheItem("Redirect to https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/13/info.json", 302, $headers, false);
         $this->assertEquals($expected, $this->getOutput(self::RESOURCE_URL, IiifResource::MODE_IMAGE));
     }
 
@@ -77,8 +77,8 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $expected = [
             'index'  => 1,
             'images' => [
-                'https://loris.acdh.oeaw.ac.at/11/info.json',
-                'https://loris.acdh.oeaw.ac.at/13/info.json',
+                'https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/11/info.json',
+                'https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/13/info.json',
             ]
         ];
         $this->checkOutput($expected, $this->getOutput(self::RESOURCE_URL, IiifResource::MODE_IMAGES));
@@ -228,7 +228,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                                ?int $height): array {
         $id = preg_replace('`^.*/`', '', $url);
         return [
-            '@id'    => $url . '#IIIF-canvas',
+            '@id'    => $url . '#IIIF-Canvas',
             '@type'  => 'sc:Canvas',
             'label'  => [
                 ['@value' => $label, '@language' => 'en']
@@ -242,11 +242,11 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                     'motivation' => 'sc:painting',
                     'on'         => $url . '#IIIF-Canvas',
                     'resource'   => [
-                        '@id'     => self::$cfg->iiifManifest->iiifServiceBase . $id . '/info.json',
+                        '@id'     => $url,
                         '@type'   => 'dctypes:Image',
                         'service' => [
                             '@context' => 'http://iiif.io/api/image/2/context.json',
-                            '@id'      => self::$cfg->iiifManifest->iiifServiceBase . $id,
+                            '@id'      => self::$cfg->iiifManifest->iiifServiceBase . $url,
                             'profile'  => 'http://iiif.io/api/image/2/level2.json',
                         ],
                         'height'  => $height,
