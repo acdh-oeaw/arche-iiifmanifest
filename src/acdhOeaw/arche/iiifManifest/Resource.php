@@ -118,7 +118,7 @@ class Resource {
     }
 
     private function getImageInfoUrl(string $id): string {
-        return $this->config->iiifServiceBase . preg_replace('`^.*/`', '', $id) . "/info.json";
+        return $this->config->iiifServiceBase . $id . "/info.json";
     }
 
     /**
