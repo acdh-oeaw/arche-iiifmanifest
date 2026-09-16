@@ -51,7 +51,7 @@ jobs:
           dockerhubLogin: ${{ secrets.DOCKER_USERNAME }}
           dockerhubPassword: ${{ secrets.DOCKER_PASSWORD }}
           imageName: $RANCHER_NAMESPACE
-          rancherProject: $RANCHER_PROJECT
-          rancherNamespace: $RANCHER_NAMESPACE
-          kubectlConfig: ${{ secrets.KUBE_CONFIG }}
           coverallsToken: ${{ secrets.coverallsToken }}
+          #rancherProject: $RANCHER_PROJECT
+          #rancherNamespace: $RANCHER_NAMESPACE
+          #kubectlConfig: ${{ secrets.KUBE_CONFIG }}
