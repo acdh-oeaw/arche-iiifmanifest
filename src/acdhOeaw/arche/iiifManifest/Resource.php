@@ -342,7 +342,7 @@ class Resource {
                                 '@id'     => (string) $sbj,
                                 '@type'   => 'dctypes:Image',
                                 'service' => [
-                                    '@context' => 'http://iiif.io/api/image/2/context.json',
+                                    '@context' => 'http://iiif.io/api/image/'.$this->config->iiifServiceVersion.'/context.json',
                                     '@id'      => preg_replace('`/[^/]*$`', '', $infoUrl),
                                     'profile'  => $profile,
                                 ],

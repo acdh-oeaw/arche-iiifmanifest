@@ -40,6 +40,8 @@ iiifManifest:
   baseUrl: https://arche-iiifmanifest.acdh.oeaw.ac.at/
   profile: http://iiif.io/api/image/2/level2.json
   iiifServiceBase: https://arche-iiifimage.acdh.oeaw.ac.at/
+  iiifServiceVersion: 3
+  iiifServiceVLevel: 2
   fetchDimensions: false
   defaultIiifManifestUri: https://id.acdh.oeaw.ac.at/dissemination/iiifManifest
   schema:

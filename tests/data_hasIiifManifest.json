@@ -29,7 +29,7 @@
                                 "@id": "https://arche.acdh.oeaw.ac.at/api/594821",
                                 "@type": "dctypes:Image",
                                 "service": {
-                                    "@context": "http://iiif.io/api/image/2/context.json",
+                                    "@context": "http://iiif.io/api/image/3/context.json",
                                     "@id": "https://arche-iiifimage.acdh.oeaw.ac.at/https://arche.acdh.oeaw.ac.at/api/594821",
                                     "profile": "http://iiif.io/api/image/2/level2.json"
                                 },

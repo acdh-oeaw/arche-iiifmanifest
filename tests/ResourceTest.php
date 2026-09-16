@@ -245,7 +245,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                         '@id'     => $url,
                         '@type'   => 'dctypes:Image',
                         'service' => [
-                            '@context' => 'http://iiif.io/api/image/2/context.json',
+                            '@context' => 'http://iiif.io/api/image/3/context.json',
                             '@id'      => self::$cfg->iiifManifest->iiifServiceBase . $url,
                             'profile'  => 'http://iiif.io/api/image/2/level2.json',
                         ],
