@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.5-apache
 LABEL org.opencontainers.image.authors="mzoltak@oeaw.ac.at"
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions &&\
